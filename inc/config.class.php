@@ -1935,6 +1935,8 @@ class Config extends CommonDBTM {
                  'check'   => 'Symfony\\Component\\Console\\Application' ],
                [ 'name'    => 'leafo/scssphp',
                  'check'   => 'Leafo\ScssPhp\Compiler' ],
+               [ 'name'    => 'composer/composer',
+                 'check'   => 'Composer\\Composer' ],
       ];
       if ($all || PHP_VERSION_ID < 70000) {
          $deps[] = [
