@@ -39,7 +39,6 @@ global $CFG_GLPI, $GLPI, $GLPI_CACHE;
 
 include_once (GLPI_ROOT."/inc/based_config.php");
 include_once (GLPI_ROOT."/inc/define.php");
-include_once (GLPI_ROOT."/inc/dbconnection.class.php");
 
 Session::setPath();
 Session::start();

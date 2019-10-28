@@ -41,16 +41,16 @@ class CommandLoader extends \GLPITestCase {
    public function testLoader() {
 
       $structure = [
-         'inc' => [
+         'src' => [
             // Not instanciable case
-            'abstractcommand.class.php' => <<<PHP
+            'AbstractCommand.php' => <<<PHP
 <?php
 abstract class AbstractCommand extends \\Symfony\\Component\\Console\\Command\\Command { }
 PHP
             ,
 
             // Base command case with alias
-            'installcommand.class.php' => <<<PHP
+            'InstallCommand.php' => <<<PHP
 <?php
 class InstallCommand extends \\Symfony\\Component\\Console\\Command\\Command {
    protected function configure() {
@@ -62,7 +62,7 @@ PHP
             ,
 
             // Namespaced command case located in root of source dir
-            'validatecommand.class.php' => <<<PHP
+            'ValidateCommand.php' => <<<PHP
 <?php
 namespace Glpi;
 class ValidateCommand extends \\Symfony\\Component\\Console\\Command\\Command {
@@ -74,11 +74,11 @@ PHP
             ,
 
             // Not a command case
-            'somename.class.php' => '<?php class SomeName {}',
+            'SomeName.php' => '<?php class SomeName {}',
 
-            'console' => [
+            'Console' => [
                // Namespaced command case
-               'testcommand.class.php' => <<<PHP
+               'TestCommand.php' => <<<PHP
 <?php
 namespace Glpi\\Console;
 class TestCommand extends \\Symfony\\Component\\Console\\Command\\Command {
@@ -91,7 +91,7 @@ PHP
          ],
          'tools' => [
             // Base command case with alias
-            'debugcommand.class.php' => <<<PHP
+            'DebugCommand.php' => <<<PHP
 <?php
 class DebugCommand extends \\Symfony\\Component\\Console\\Command\\Command {
    protected function configure() {
@@ -155,6 +155,31 @@ class AnotherCommand extends \\Symfony\\Component\\Console\\Command\\Command {
 PHP
                   ],
                ],
+               'src' => [
+                  // Plugin PSR-4 compliant with namespace command case
+                  'PluginAwesomePsr4Command.php' => <<<PHP
+<?php
+class PluginAwesomePsr4Command extends \\Symfony\\Component\\Console\\Command\\Command {
+   protected function configure() {
+      \$this->setName('plugin_awesome:psr4');
+   }
+}
+PHP
+                  ,
+
+                  'Console' => [
+                     // Plugin PSR-4 compliant without namespace command case
+                     'YetAnotherCommand.php' => <<<PHP
+<?php
+namespace GlpiPlugin\\Awesome\\Console;
+class YetAnotherCommand extends \\Symfony\\Component\\Console\\Command\\Command {
+   protected function configure() {
+      \$this->setName('plugin_awesome:yetanother');
+   }
+}
+PHP
+                  ],
+               ],
             ],
             'misc' => [
                'inc' => [
@@ -179,6 +204,8 @@ PHP
          'plugin_awesome:update'     => 'PluginAwesomeUpdateCommand',
          'plugin_awesome:namespaced' => 'GlpiPlugin\\Awesome\\NamespacedCommand',
          'plugin_awesome:another'    => 'GlpiPlugin\\Awesome\\Console\\AnotherCommand',
+         'plugin_awesome:psr4'       => 'PluginAwesomePsr4Command',
+         'plugin_awesome:yetanother' => 'GlpiPlugin\\Awesome\\Console\\YetAnotherCommand',
       ];
 
       $all_names_to_class = array_merge($core_names_to_class, $plugins_names_to_class);

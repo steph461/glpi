@@ -33,6 +33,7 @@
 namespace tests\units;
 
 use \DbTestCase;
+use org\bovigo\vfs\vfsStream;
 
 /* Test for inc/dbutils.class.php */
 
@@ -1116,5 +1117,88 @@ class DbUtils extends DbTestCase {
                   $entities_id
                )
             )->isIdenticalTo($expected);
+   }
+
+
+   /**
+    * Data provider for self::testGetItemtypeWithFixedCase().
+    */
+   protected function getItemtypeWithFixedCaseProvider() {
+      return [
+         // Bad case classnames matching and existing class file
+         [
+            'itemtype' => 'myclass',
+            'expected' => 'MyClass',
+         ],
+         [
+            'itemtype' => 'glpi\\appliCation\\CoNsOlE\\MyCommand',
+            'expected' => 'Glpi\\Application\\Console\\MyCommand',
+         ],
+         [
+            'itemtype' => 'PluginFooBaritem',
+            'expected' => 'PluginFooBarItem',
+         ],
+         [
+            'itemtype' => 'GlpiPluGin\\Foo\\Namespacedbar',
+            'expected' => 'GlpiPlugin\\Foo\\NamespacedBar',
+         ],
+         // Good case (should not be altered)
+         [
+            'itemtype' => 'MyClass',
+            'expected' => 'MyClass',
+         ],
+         [
+            'itemtype' => 'Glpi\\Application\\Console\\MyCommand',
+            'expected' => 'Glpi\\Application\\Console\\MyCommand',
+         ],
+         [
+            'itemtype' => 'GlpiPlugin\\Foo\\NamespacedBar',
+            'expected' => 'GlpiPlugin\\Foo\\NamespacedBar',
+         ],
+         // Not matching any class file (should not be altered)
+         [
+            'itemtype' => 'notanitemtype',
+            'expected' => 'notanitemtype',
+         ],
+         [
+            'itemtype' => 'GlpiPlugin\\Invalid\\itemtype',
+            'expected' => 'GlpiPlugin\\Invalid\\itemtype',
+         ],
+      ];
+   }
+
+   /**
+    * @dataProvider getItemtypeWithFixedCaseProvider
+    */
+   public function testGetItemtypeWithFixedCase($itemtype, $expected) {
+
+      $this->newTestedInstance();
+
+      vfsStream::setup(
+         'glpi',
+         null,
+         [
+            'src' => [
+               'Application' => [
+                  'Console' => [
+                     'MyCommand.php' => '',
+                  ],
+               ],
+               'MyClass.php' => '',
+               'NamespacedClass.php' => '',
+            ],
+            'plugins' => [
+               'foo' => [
+                  'src' => [
+                     'NamespacedBar.php' => '',
+                     'PluginFooBarItem.php' => '',
+                  ],
+               ],
+            ],
+         ]
+      );
+
+      $result = $this->testedInstance->getItemtypeWithFixedCase($itemtype, vfsStream::url('glpi'));
+      $this->variable($result)->isEqualTo($expected);
    }
 }

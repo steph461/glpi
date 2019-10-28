@@ -259,30 +259,101 @@ final class DbUtils {
             $table = Toolbox::ucfirst($this->getSingular($table));
          }
 
-         $itemtype = $prefix.$table;
-         // Get real existence of itemtype
-         if (class_exists($itemtype)) {
-            $item_class = new ReflectionClass($itemtype);
-            if (!$item_class->isAbstract() && ($item = $this->getItemForItemtype($itemtype))) {
-               $itemtype                                   = get_class($item);
-               $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
-               $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
-               return $itemtype;
-            }
-         }
-         // Namespaced item
-         $itemtype = $pref2 . str_replace('_', '\\', $table);
-         if (class_exists($itemtype)) {
-            $item_class = new ReflectionClass($itemtype);
-            if (!$item_class->isAbstract() && ($item = $this->getItemForItemtype($itemtype))) {
-               $itemtype                                   = get_class($item);
-               $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
-               $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
-               return $itemtype;
+         $potential_itemtypes = [
+            $prefix . $table,
+            $pref2 . str_replace('_', '\\', $table),
+         ];
+         foreach ($potential_itemtypes as $itemtype) {
+            $itemtype = $this->getItemtypeWithFixedCase($itemtype);
+
+            if (class_exists($itemtype)) {
+               $item_class = new ReflectionClass($itemtype);
+               if (!$item_class->isAbstract() && ($item = $this->getItemForItemtype($itemtype))) {
+                  $itemtype                                   = get_class($item);
+                  $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
+                  $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
+                  return $itemtype;
+               }
             }
          }
          return "UNKNOWN";
       }
+   }
+
+
+   /**
+    * Try to fix itemtype case.
+    *
+    * @param string $itemtype
+    * @param string $root_dir
+    *
+    * @return string
+    */
+   public function getItemtypeWithFixedCase(string $itemtype, $root_dir = GLPI_ROOT) {
+
+      if (class_exists($itemtype, false)) {
+         // If a class exists for this itemtype, just return the declared class name.
+         $matches = preg_grep('/^' . preg_quote($itemtype) . '$/i', get_declared_classes());
+         if (count($matches) === 1) {
+            return current($matches);
+         }
+      }
+
+      static $files = [];
+
+      $context = 'glpi-core';
+      $plugin_matches = [];
+      if (preg_match('/^Plugin(?P<plugin>[A-Z][a-z]*)/', $itemtype, $plugin_matches)) {
+         // Nota: plugin classes that does not use any namespace cannot be completely case insensitive
+         // indeed, we must be able to separate plugin name (directory) from class name (file)
+         // so pattern must be the one provided by getItemTypeForTable: PluginDirectorynameClassname
+         $context = strtolower($plugin_matches['plugin']);
+      } else if (preg_match('/^' . preg_quote(NS_PLUG) . '(?P<plugin>[a-z]+)\\\/i', $itemtype, $plugin_matches)) {
+         $context = strtolower($plugin_matches['plugin']);
+      }
+
+      if (!array_key_exists($context, $files)) {
+         $files[$context] = [];
+
+         $srcdir = $root_dir . ($context === 'glpi-core' ? '' : '/plugins/' . $context) . '/src';
+         if (!is_dir($srcdir)) {
+            // Cannot search in files if dir not exists (can correspond to a deleted plugin)
+            return $itemtype;
+         }
+         $files_iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($srcdir),
+            RecursiveIteratorIterator::SELF_FIRST
+         );
+         /** @var SplFileInfo $file */
+         foreach ($files_iterator as $file) {
+            if (!$file->isReadable() || !$file->isFile() || '.php' === !$file->getExtension()) {
+               continue;
+            }
+            $relative_path = str_replace($srcdir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            $files[$context][strtolower($relative_path)] = $relative_path;
+         }
+      }
+
+      $namespace      = $context === 'glpi-core' ? NS_GLPI : NS_PLUG . ucfirst($context) . '\\';
+      $uses_namespace = preg_match('/^(' . preg_quote($namespace) . ')/i', $itemtype);
+
+      $expected_lc_path = str_ireplace(
+         [$namespace, '\\'],
+         [''        , DIRECTORY_SEPARATOR],
+         strtolower($itemtype) . '.php'
+      );
+
+      if (array_key_exists($expected_lc_path, $files[$context])) {
+         $itemtype = str_replace(
+            [DIRECTORY_SEPARATOR, '.php'],
+            ['\\',                ''],
+            $files[$context][$expected_lc_path]
+         );
+
+         $itemtype = ($uses_namespace ? $namespace : '') . $itemtype;
+      }
+
+      return $itemtype;
    }
 
 

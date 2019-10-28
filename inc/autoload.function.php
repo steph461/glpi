@@ -256,8 +256,6 @@ function _nx($ctx, $sing, $plural, $nb, $domain = 'glpi') {
  */
 function glpi_autoload($classname) {
    global $DEBUG_AUTOLOAD;
-   static $notfound = ['xStates'    => true,
-                            'xAllAssets' => true, ];
 
    // empty classname or non concerted plugin or classname containing dot (leaving GLPI main treee)
    if (empty($classname) || is_numeric($classname) || (strpos($classname, '.') !== false)) {
@@ -274,8 +272,6 @@ function glpi_autoload($classname) {
       return true;
    }
 
-   $dir = GLPI_ROOT . "/inc/";
-
    // Deprecation warn for Computer_Software* classes
    if ($classname === 'Computer_SoftwareLicense') {
       Toolbox::deprecated('Computer_SoftwareLicense has been replaced by Item_SoftwareLicense.');
@@ -284,33 +280,25 @@ function glpi_autoload($classname) {
       Toolbox::deprecated('Computer_SoftwareVersion has been replaced by Item_SoftwareVersion.');
    }
 
-   if ($plug = isPluginItemType($classname)) {
-      $plugname = strtolower($plug['plugin']);
-      $dir      = GLPI_ROOT . "/plugins/$plugname/inc/";
-      $item     = str_replace('\\', '/', strtolower($plug['class']));
-      // Is the plugin active?
-      if (!Plugin::isPluginLoaded($plugname)) {
-         // Plugin not activated
-         return false;
-      }
-   } else {
-      $item = strtolower($classname);
-      if (substr($classname, 0, \strlen(NS_GLPI)) === NS_GLPI) {
-         $item = str_replace('\\', '/', substr($item, \strlen(NS_GLPI)));
-      }
+   $plug = isPluginItemType($classname);
+
+   if (!$plug) {
+      return false;
+   }
+
+   $plugname = strtolower($plug['plugin']);
+   $dir      = GLPI_ROOT . "/plugins/$plugname/inc/";
+   $item     = str_replace('\\', '/', strtolower($plug['class']));
+
+   if (!Plugin::isPluginLoaded($plugname)) {
+      return false;
    }
 
    if (file_exists("$dir$item.class.php")) {
       include_once("$dir$item.class.php");
-      if (isset($_SESSION['glpi_use_mode'])
-          && ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE)) {
+      if (isset($_SESSION['glpi_use_mode']) && ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE)) {
          $DEBUG_AUTOLOAD[] = $classname;
       }
-
-   } else if (!isset($notfound["x$classname"])) {
-      // trigger an error to get a backtrace, but only once (use prefix 'x' to handle empty case)
-      // trigger_error("GLPI autoload : file $dir$item.class.php not founded trying to load class '$classname'");
-      $notfound["x$classname"] = true;
    }
 }
 
@@ -359,4 +347,4 @@ if ($needrun) {
 require_once $autoload;
 
 // Use spl autoload to allow stackable autoload.
-spl_autoload_register('glpi_autoload', false, true);
+spl_autoload_register('glpi_autoload');

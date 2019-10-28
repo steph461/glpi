@@ -1842,6 +1842,14 @@ class Plugin extends CommonDBTM {
       $plugins = self::getPlugins();
       $plugins[$id] = $name;
       self::$loaded_plugins = $plugins;
+
+      $psr4_dir = GLPI_ROOT . '/plugins/' . $name . '/src';
+      if (is_dir($psr4_dir)) {
+         $psr4_autoloader = new \Composer\Autoload\ClassLoader();
+         $psr4_autoloader->addPsr4(NS_PLUG . ucfirst($name) . '\\', $psr4_dir);
+         $psr4_autoloader->addPsr4('', $psr4_dir);
+         $psr4_autoloader->register();
+      }
    }
 
    /**
