@@ -1376,6 +1376,9 @@ INSERT INTO `glpi_configs` VALUES ('206','core','purge_all','0');
 INSERT INTO `glpi_configs` VALUES ('207','core','purge_user_auth_changes','0');
 INSERT INTO `glpi_configs` VALUES ('208','core','purge_plugins','0');
 INSERT INTO `glpi_configs` VALUES ('209','core','display_login_source','1');
+INSERT INTO `glpi_configs` VALUES ('210','core','password_expiration_delay','-1');
+INSERT INTO `glpi_configs` VALUES ('211','core','password_expiration_notice','-1');
+INSERT INTO `glpi_configs` VALUES ('212','core','password_expiration_lock_delay','-1');
 
 ### Dump table glpi_consumableitems
 
@@ -1711,6 +1714,7 @@ INSERT INTO `glpi_crontasks` VALUES ('30','Telemetry','telemetry','2592000',NULL
 INSERT INTO `glpi_crontasks` VALUES ('31','Certificate','certificate','86400',NULL,'0','1','3','0','24','10',NULL,NULL,NULL,NULL,NULL);
 INSERT INTO `glpi_crontasks` VALUES ('32','OlaLevel_Ticket','olaticket','300',NULL,'1','1','3','0','24','30','2014-06-18 08:02:00',NULL,NULL,NULL,NULL);
 INSERT INTO `glpi_crontasks` VALUES ('33','PurgeLogs','PurgeLogs','604800',24,'1','2','3','0','24','30',NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `glpi_crontasks` VALUES ('36','User','passwordexpiration','86400',100,'0','2','3','0','24','30',NULL,NULL,NULL,NULL,NULL);
 
 ### Dump table glpi_devicecasemodels
 
@@ -4929,6 +4933,7 @@ INSERT INTO `glpi_notifications` VALUES(64, 'New group in assignees', 0, 'Ticket
 INSERT INTO `glpi_notifications` VALUES(65, 'New supplier in assignees', 0, 'Ticket', 'assign_supplier', '', 1, 1, '2016-02-08 16:57:46', NULL);
 INSERT INTO `glpi_notifications` VALUES(66, 'Saved searches', 0, 'SavedSearch_Alert', 'alert', '', 1, 1, '2016-02-08 16:57:46', NULL);
 INSERT INTO `glpi_notifications` VALUES(67, 'Certificates', 0, 'Certificate', 'alert', '', 1, 1, NULL, NULL);
+INSERT INTO `glpi_notifications` VALUES(70, 'Password expires alert', 0, 'User', 'passwordexpires', '', 1, 1, NULL, NULL);
 
 
 ### Dump table glpi_notifications_notificationtemplates
@@ -5013,6 +5018,7 @@ INSERT INTO `glpi_notifications_notificationtemplates` VALUES(64, '64', 'mailing
 INSERT INTO `glpi_notifications_notificationtemplates` VALUES(65, '65', 'mailing', 4);
 INSERT INTO `glpi_notifications_notificationtemplates` VALUES(66, '66', 'mailing', 24);
 INSERT INTO `glpi_notifications_notificationtemplates` VALUES(67, '67', 'mailing', 25);
+INSERT INTO `glpi_notifications_notificationtemplates` VALUES(70, '70', 'mailing', 27);
 
 
 ### Dump table glpi_notificationtargets
@@ -5157,6 +5163,7 @@ INSERT INTO `glpi_notificationtargets` VALUES ('128','2','1','63');
 INSERT INTO `glpi_notificationtargets` VALUES ('129','23','1','64');
 INSERT INTO `glpi_notificationtargets` VALUES ('130','8','1','65');
 INSERT INTO `glpi_notificationtargets` VALUES ('131','19','1','66');
+INSERT INTO `glpi_notificationtargets` VALUES ('132','19','1','70');
 
 ### Dump table glpi_notificationtemplates
 
@@ -5201,6 +5208,7 @@ INSERT INTO `glpi_notificationtemplates` VALUES ('22','Project Tasks','ProjectTa
 INSERT INTO `glpi_notificationtemplates` VALUES ('23','Unlock Item request','ObjectLock','2016-02-08 16:57:46',NULL,NULL,NULL);
 INSERT INTO `glpi_notificationtemplates` VALUES ('24','Saved searches alerts','SavedSearch_Alert','2017-04-05 14:57:34',NULL,NULL,NULL);
 INSERT INTO `glpi_notificationtemplates` VALUES ('25','Certificates','Certificate',NULL,'',NULL,NULL);
+INSERT INTO `glpi_notificationtemplates` VALUES ('27','Password expires alert','User',NULL,'',NULL,NULL);
 
 ### Dump table glpi_notificationtemplatetranslations
 
@@ -5866,6 +5874,33 @@ INSERT INTO `glpi_notificationtemplatetranslations` VALUES ('25','25','','##cert
 ##lang.certificate.expirationdate## : ##certificate.expirationdate##
 &lt;br /&gt; &lt;a href=\"##certificate.url##\"&gt; ##certificate.url##
 &lt;/a&gt;&lt;br /&gt; ##ENDFOREACHcertificates##&lt;/p&gt;');
+INSERT INTO `glpi_notificationtemplatetranslations` VALUES ('27','27','','##user.action##','##user.realname## ##user.firstname##,
+
+##IFuser.password.has_expired=1##
+##lang.password.has_expired.information##
+##ENDIFuser.password.has_expired##
+##ELSEuser.password.has_expired##
+##lang.password.expires_soon.information##
+##ENDELSEuser.password.has_expired##
+##lang.user.password.expiration.date##: ##user.password.expiration.date##
+##IFuser.account.lock.date##
+##lang.user.account.lock.date##: ##user.account.lock.date##
+##ENDIFuser.account.lock.date##
+
+##password.update.link## ##user.password.update.url##','&lt;p&gt;&lt;strong&gt;##user.realname## ##user.firstname##&lt;/strong&gt;&lt;/p&gt;
+
+##IFuser.password.has_expired=1##
+&lt;p&gt;##lang.password.has_expired.information##&lt;/p&gt;
+##ENDIFuser.password.has_expired##
+##ELSEuser.password.has_expired##
+&lt;p&gt;##lang.password.expires_soon.information##&lt;/p&gt;
+##ENDELSEuser.password.has_expired##
+&lt;p&gt;##lang.user.password.expiration.date##: ##user.password.expiration.date##&lt;/p&gt;
+##IFuser.account.lock.date##
+&lt;p&gt;##lang.user.account.lock.date##: ##user.account.lock.date##&lt;/p&gt;
+##ENDIFuser.account.lock.date##
+
+&lt;p&gt;##lang.password.update.link## &lt;a href="##user.password.update.url##"&gt;##user.password.update.url##&lt;/a&gt;&lt;/p&gt;');
 
 ### Dump table glpi_notimportedemails
 
@@ -8863,6 +8898,7 @@ CREATE TABLE `glpi_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `password` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `password_last_update` timestamp NULL DEFAULT NULL,
   `phone` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `phone2` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mobile` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
