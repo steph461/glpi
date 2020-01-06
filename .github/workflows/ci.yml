@@ -46,6 +46,11 @@ jobs:
       - name: "PHP Parallel Lint"
         run: |
           docker exec ${{ job.services.app.id }} vendor/bin/parallel-lint  --exclude ./files/ --exclude ./plugins/ --exclude ./tools/vendor/ --exclude ./vendor/ .
+      - name: "Check for missing dependencies / bad symbols"
+        run: |
+          docker exec -u root ${{ job.services.app.id }} docker-php-ext-install pcntl
+          docker exec ${{ job.services.app.id }} composer global require maglnet/composer-require-checker
+          docker exec ${{ job.services.app.id }} php -d memory_limit=512M /home/glpi/composer/vendor/bin/composer-require-checker check --config-file=.composer-require-checker.config.json
       - name: "PHP CS"
         run: |
           docker exec ${{ job.services.app.id }} vendor/bin/phpcs -d memory_limit=512M -p --extensions=php --standard=vendor/glpi-project/coding-standard/GlpiStandard/ --ignore=/.git/,/config/,/files/,/lib/,/marketplace/,/node_modules/,/plugins/,/tests/config/,/vendor/ ./
