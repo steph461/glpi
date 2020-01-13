@@ -199,6 +199,8 @@ jobs:
       - run:
           name: PHP CS
           command: |
+            composer require --dev --prefer-dist --no-progress sirbrillig/phpcs-variable-analysis
+            patch -p 1 -i coding-standards.patch
             touch /home/circleci/phpcs.cache
             vendor/bin/phpcs -d memory_limit=512M --cache /home/circleci/phpcs.cache -p --extensions=php --standard=vendor/glpi-project/coding-standard/GlpiStandard/ --ignore=/.git/,/config/,/files/,/lib/,/node_modules/,/plugins/,/tests/config/,/vendor/ ./
       - run:

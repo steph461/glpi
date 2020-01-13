@@ -33,6 +33,8 @@ jobs:
           docker exec ${{ job.services.app.id }} vendor/bin/parallel-lint  --exclude ./files/ --exclude ./plugins/ --exclude ./tools/vendor/ --exclude ./vendor/ .
       - name: "PHP CS"
         run: |
+          docker exec ${{ job.services.app.id }} composer require --dev --prefer-dist --no-progress sirbrillig/phpcs-variable-analysis
+          docker exec ${{ job.services.app.id }} patch -p 1 -i coding-standards.patch
           docker exec ${{ job.services.app.id }} vendor/bin/phpcs -d memory_limit=512M -p --extensions=php --standard=vendor/glpi-project/coding-standard/GlpiStandard/ --ignore=/.git/,/config/,/files/,/lib/,/node_modules/,/plugins/,/tests/config/,/vendor/ ./
       - name: "ESLint"
         run: |
