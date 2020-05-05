@@ -80,6 +80,7 @@ The present file will list all changes made to the project; according to the
 - `Transfer::transferComputerSoftwares` renamed to `Transfer::transferItemSoftwares`
 - 'getRealQueryForTreeItem()'
 - ``getCommonSelect`` and ``getCommonLeftJoin()`` from ``Ticket``, ``Change`` and ``Problem`` are replaced with ``getCommonCriteria()`` compliant with db iterator
+- `Config::checkExtensions()`
 - `Config::checkWriteAccessToDirs()`
 - `Config::displayCheckExtensions()`
 - `Toolbox::checkSELinux()`
@@ -118,6 +119,19 @@ The present file will list all changes made to the project; according to the
 - `ProjectTask::cloneProjectTeam()`
 - Usage of `GLPIKEY` constant
 - `Toolbox::encrypt()` and `Toolbox::decrypt()` because they use the old encryption aglogithm
+- `Plugin::checkGlpiVersion()`
+- `Plugin::checkGlpiParameters()`
+- `Plugin::checkGlpiPlugins()`
+- `Plugin::checkPhpExtensions()`
+- `Plugin::checkPhpParameters()`
+- `Plugin::checkPhpVersion()`
+- `Plugin::checkVersions()`
+- `Plugin::getGlpiPrever()`
+- `Plugin::getGlpiVersion()`
+- `Plugin::getPhpVersion()`
+- `Plugin::isGlpiPrever()`
+- `Plugin::messageIncompatible()`
+- `Plugin::messageMissingRequirement()`
 
 #### Removed
 

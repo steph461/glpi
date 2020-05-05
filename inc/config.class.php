@@ -2467,8 +2467,11 @@ class Config extends CommonDBTM {
     *                'missing'   => [ext => message],
     *                'may'       => [ext => message]
     *               ]
+    *
+    * @deprecated 9.5.0
    **/
    static function checkExtensions($list = null) {
+      Toolbox::deprecated();
       if ($list === null) {
          $extensions_to_check = [
             'mysqli'   => [
