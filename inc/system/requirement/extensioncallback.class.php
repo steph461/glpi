@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2019 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -39,42 +39,28 @@ if (!defined('GLPI_ROOT')) {
 /**
  * @since 9.5.0
  */
-class Extension extends AbstractRequirement {
+class ExtensionCallback extends Extension {
 
    /**
-    * Required extension name.
+    * Callback function that will be used during checks.
     *
-    * @var string
+    * @var callable
     */
-   private $name;
+   private $callback;
 
    /**
-    * @param string $name    Required extension name.
-    * @param bool $optional  Indicated if extension is optional.
+    * @param string   $name      Extension name.
+    * @param callable $callback  Callback function that will be used during checks.
+    * @param bool     $optional  Indicated if extension is optional.
     */
-   public function __construct(string $name, bool $optional = false) {
-      $this->title = sprintf(__('%s extension test'), $name);
-      $this->name = $name;
-      $this->optional = $optional;
+   public function __construct(string $name, callable $callback, bool $optional = false) {
+      parent::__construct($name, $optional);
+      $this->callback = $callback;
    }
 
    protected function check() {
-      $this->validated = extension_loaded($this->name);
+      $this->validated = call_user_func($this->callback);
       $this->buildValidationMessage();
    }
 
-   /**
-    * Defines the validation message based on self properties.
-    *
-    * @return void
-    */
-   protected function buildValidationMessage() {
-      if ($this->validated) {
-         $this->validation_messages[] = sprintf(__('%s extension is installed.'), $this->name);
-      } else if ($this->optional) {
-         $this->validation_messages[] = sprintf(__('%s extension is not present.'), $this->name);
-      } else {
-         $this->validation_messages[] = sprintf(__('%s extension is missing.'), $this->name);
-      }
-   }
 }

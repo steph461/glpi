@@ -597,12 +597,12 @@ HTML;
 
       $error = "";
       if ($exists) {
-         ob_start();
-         $do_activate = $plugin_inst->checkVersions($plugin_key);
-         if (!$do_activate) {
-            $error.= "<span class='error'>" . ob_get_contents() . "</span>";
+         $requirements = $plugin_inst->getRequirementsList($plugin_key);
+         if ($requirements->hasMissingMandatoryRequirements()) {
+            $error .= '<span class="error">';
+            $error .= implode(' ', $requirements->getValidationMessages(false, true, false));
+            $error .= '</span>';
          }
-         ob_end_clean();
       }
 
       $buttons = "";

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2019 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -39,42 +39,28 @@ if (!defined('GLPI_ROOT')) {
 /**
  * @since 9.5.0
  */
-class Extension extends AbstractRequirement {
+class PhpParameter extends AbstractRequirement {
 
    /**
-    * Required extension name.
+    * GLPI parameter key.
     *
     * @var string
     */
-   private $name;
+   private $key;
 
    /**
-    * @param string $name    Required extension name.
-    * @param bool $optional  Indicated if extension is optional.
+    * @param string $key  GLPI parameter key
     */
-   public function __construct(string $name, bool $optional = false) {
-      $this->title = sprintf(__('%s extension test'), $name);
-      $this->name = $name;
-      $this->optional = $optional;
+   public function __construct(string $key) {
+      $this->title = sprintf(__('Testing PHP parameter %s'), $key);
+      $this->key = $key;
    }
 
    protected function check() {
-      $this->validated = extension_loaded($this->name);
-      $this->buildValidationMessage();
-   }
+      $this->validated = ini_get($this->key) && trim(ini_get($this->key)) != '';
 
-   /**
-    * Defines the validation message based on self properties.
-    *
-    * @return void
-    */
-   protected function buildValidationMessage() {
-      if ($this->validated) {
-         $this->validation_messages[] = sprintf(__('%s extension is installed.'), $this->name);
-      } else if ($this->optional) {
-         $this->validation_messages[] = sprintf(__('%s extension is not present.'), $this->name);
-      } else {
-         $this->validation_messages[] = sprintf(__('%s extension is missing.'), $this->name);
-      }
+      $this->validation_messages[] = $this->validated
+         ? sprintf(__('PHP parameter %s is present.'), $this->key)
+         : sprintf(__('PHP parameter %s is required.'), $this->key);
    }
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2018 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -32,19 +32,31 @@
 
 namespace tests\units\Glpi\System\Requirement;
 
-class ExtensionFunction extends \GLPITestCase {
+class ExtensionCallback extends \GLPITestCase {
 
-   public function testCheckOnExistingExtension() {
+   public function returnTrue() {
+      return true;
+   }
 
-      $this->newTestedInstance('xml', 'utf8_decode');
+   public function testCheckOnExistingExtensionByAnonFunc() {
+
+      $this->newTestedInstance('some-ext', function () { return true; });
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(true);
       $this->array($this->testedInstance->getValidationMessages())
-         ->isEqualTo(['xml extension is installed.']);
+         ->isEqualTo(['some-ext extension is installed.']);
+   }
+
+   public function testCheckOnExistingExtensionByCallableArray() {
+
+      $this->newTestedInstance('some-ext', [$this, 'returnTrue']);
+      $this->boolean($this->testedInstance->isValidated())->isEqualTo(true);
+      $this->array($this->testedInstance->getValidationMessages())
+      ->isEqualTo(['some-ext extension is installed.']);
    }
 
    public function testCheckOnMissingMandatoryExtension() {
 
-      $this->newTestedInstance('fake_ext', 'fake_extension_function');
+      $this->newTestedInstance('fake_ext', function () { return false; });
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(false);
       $this->array($this->testedInstance->getValidationMessages())
          ->isEqualTo(['fake_ext extension is missing.']);
@@ -52,7 +64,7 @@ class ExtensionFunction extends \GLPITestCase {
 
    public function testCheckOnMissingOptionalExtension() {
 
-      $this->newTestedInstance('fake_ext', 'fake_extension_function', true);
+      $this->newTestedInstance('fake_ext', function () { return false; }, true);
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(false);
       $this->array($this->testedInstance->getValidationMessages())
          ->isEqualTo(['fake_ext extension is not present.']);

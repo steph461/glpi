@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2020 Teclib' and contributors.
+ * Copyright (C) 2015-2019 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -39,42 +39,33 @@ if (!defined('GLPI_ROOT')) {
 /**
  * @since 9.5.0
  */
-class Extension extends AbstractRequirement {
+class PlugCustomPrerequisites extends AbstractRequirement {
 
    /**
-    * Required extension name.
+    * GLPI plugin key.
     *
     * @var string
     */
-   private $name;
+   private $key;
 
    /**
-    * @param string $name    Required extension name.
-    * @param bool $optional  Indicated if extension is optional.
+    * @param string $key  GLPI plugin key
     */
-   public function __construct(string $name, bool $optional = false) {
-      $this->title = sprintf(__('%s extension test'), $name);
-      $this->name = $name;
-      $this->optional = $optional;
+   public function __construct(string $key) {
+      $this->title = sprintf(__('Testing GLPI plugin %s custom prerequisites'), $key);
+      $this->key = $key;
    }
 
    protected function check() {
-      $this->validated = extension_loaded($this->name);
-      $this->buildValidationMessage();
-   }
-
-   /**
-    * Defines the validation message based on self properties.
-    *
-    * @return void
-    */
-   protected function buildValidationMessage() {
-      if ($this->validated) {
-         $this->validation_messages[] = sprintf(__('%s extension is installed.'), $this->name);
-      } else if ($this->optional) {
-         $this->validation_messages[] = sprintf(__('%s extension is not present.'), $this->name);
+      $check_function = 'plugin_' . $this->key . '_check_prerequisites';
+      if (function_exists($check_function)) {
+         ob_start();
+         $this->validated = $check_function();
+         $this->validation_messages[] = ob_get_contents();
+         ob_end_clean();
       } else {
-         $this->validation_messages[] = sprintf(__('%s extension is missing.'), $this->name);
+         $this->out_of_context = true; // No function defined, this check has no valid context
+         $this->validated = true;
       }
    }
 }

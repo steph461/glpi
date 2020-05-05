@@ -39,7 +39,7 @@ class ExtensionClass extends \GLPITestCase {
       $this->newTestedInstance('psr-log', 'Psr\\Log\\NullLogger');
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(true);
       $this->array($this->testedInstance->getValidationMessages())
-         ->isEqualTo(['psr-log extension is installed']);
+         ->isEqualTo(['psr-log extension is installed.']);
    }
 
    public function testCheckOnExistingExtensionByInterface() {
@@ -47,7 +47,7 @@ class ExtensionClass extends \GLPITestCase {
       $this->newTestedInstance('psr-simplecache', 'Psr\\SimpleCache\\CacheInterface');
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(true);
       $this->array($this->testedInstance->getValidationMessages())
-         ->isEqualTo(['psr-simplecache extension is installed']);
+         ->isEqualTo(['psr-simplecache extension is installed.']);
    }
 
    public function testCheckOnMissingMandatoryExtension() {
@@ -55,7 +55,7 @@ class ExtensionClass extends \GLPITestCase {
       $this->newTestedInstance('fake_ext', 'Fake\\FakeExtension');
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(false);
       $this->array($this->testedInstance->getValidationMessages())
-         ->isEqualTo(['fake_ext extension is missing']);
+         ->isEqualTo(['fake_ext extension is missing.']);
    }
 
    public function testCheckOnMissingOptionalExtension() {
@@ -63,6 +63,6 @@ class ExtensionClass extends \GLPITestCase {
       $this->newTestedInstance('fake_ext', 'Fake\\FakeExtension', true);
       $this->boolean($this->testedInstance->isValidated())->isEqualTo(false);
       $this->array($this->testedInstance->getValidationMessages())
-         ->isEqualTo(['fake_ext extension is not present']);
+         ->isEqualTo(['fake_ext extension is not present.']);
    }
 }
